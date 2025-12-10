@@ -95,13 +95,13 @@ contract AssetToAssetSwapHookForkTest is Test {
             address(this),
             SWAP_HOOK_PERMISSIONS,
             type(AssetToAssetSwapHookForERC4626).creationCode,
-            abi.encode(poolManager, yieldHarvestingHook, initialOwner)
+            abi.encode(poolManager, address(1), yieldHarvestingHook, initialOwner)
         );
 
         assetToAssetSwapHook =
-            new AssetToAssetSwapHookForERC4626{salt: salt}(poolManager, yieldHarvestingHook, initialOwner);
+            new AssetToAssetSwapHookForERC4626{salt: salt}(poolManager, address(1), yieldHarvestingHook, initialOwner);
 
-        liquidityHelper = new LiquidityHelper(evc, positionManager, yieldHarvestingHook);
+        liquidityHelper = new LiquidityHelper(evc, positionManager, address(1), yieldHarvestingHook);
 
         assetsPoolKey = PoolKey({
             currency0: Currency.wrap(address(asset0)),

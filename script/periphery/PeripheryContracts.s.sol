@@ -28,23 +28,28 @@ contract PeripheryContractsScript is Script {
         IPositionManager positionManager = IPositionManager(0x4529A01c7A0410167c5740C487A8DE60232617bf);
         YieldHarvestingHook yieldHarvestingHook = YieldHarvestingHook(0x777ef319C338C6ffE32A2283F603db603E8F2A80);
 
+        //TODO: add the actual permit2 address instead of address(1) if needed
+
         // Deploy AssetToAssetSwapHookForERC4626
         (, bytes32 assetToAssetSalt) = HookMiner.find(
             CREATE2_DEPLOYER,
             HOOK_PERMISSIONS,
             type(AssetToAssetSwapHookForERC4626).creationCode,
-            abi.encode(poolManager, yieldHarvestingHook, owner)
+            abi.encode(poolManager, address(1), yieldHarvestingHook, owner)
         );
         vm.startBroadcast();
 
-        AssetToAssetSwapHookForERC4626 assetToAssetSwapHook =
-            new AssetToAssetSwapHookForERC4626{salt: assetToAssetSalt}(poolManager, yieldHarvestingHook, owner);
+        AssetToAssetSwapHookForERC4626 assetToAssetSwapHook = new AssetToAssetSwapHookForERC4626{
+            salt: assetToAssetSalt
+        }(
+            poolManager, address(1), yieldHarvestingHook, owner
+        );
 
         // AssetToAssetSwapHookForERC4626 assetToAssetSwapHook =
         //     AssetToAssetSwapHookForERC4626(0x604E6C45FEe7D7634865603c37Ef1695D0f2C888);
 
         // Deploy LiquidityHelper
-        LiquidityHelper liquidityHelper = new LiquidityHelper(evc, positionManager, yieldHarvestingHook);
+        LiquidityHelper liquidityHelper = new LiquidityHelper(evc, positionManager, address(1), yieldHarvestingHook);
 
         PoolKey memory poolKey = PoolKey({
             currency0: Currency.wrap(0x078D782b760474a361dDA0AF3839290b0EF57AD6), // USDC

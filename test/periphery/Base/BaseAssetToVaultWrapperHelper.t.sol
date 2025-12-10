@@ -15,6 +15,8 @@ import {LibClone} from "lib/solady/src/utils/LibClone.sol";
 import {ERC4626VaultWrapperTest} from "test/ERC4626VaultWrapper.t.sol";
 
 contract MockAssetToVaultWrapperHelper is BaseAssetToVaultWrapperHelper {
+    constructor() BaseAssetToVaultWrapperHelper(address(1)) {}
+
     function deposit(
         IERC4626 vaultWrapper,
         address underlyingVault,

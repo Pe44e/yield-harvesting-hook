@@ -36,7 +36,10 @@ contract LiquidityHelper is EVCUtil, BaseAssetToVaultWrapperHelper {
 
     error NotOwner();
 
-    constructor(address _evc, IPositionManager _positionManager, IHooks _yieldHarvestingHook) EVCUtil(_evc) {
+    constructor(address _evc, IPositionManager _positionManager, address _permit2, IHooks _yieldHarvestingHook)
+        BaseAssetToVaultWrapperHelper(_permit2)
+        EVCUtil(_evc)
+    {
         yieldHarvestingHook = _yieldHarvestingHook;
         positionManager = _positionManager;
         weth = IWETH9(IPositionManagerExtended(address(_positionManager)).WETH9());

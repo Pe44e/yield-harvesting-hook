@@ -66,8 +66,9 @@ contract AssetToAssetSwapHookForERC4626 is
     error InsufficientWarmLiquidity(uint256 requested, uint256 available);
     error ZeroAmountNotAllowed();
 
-    constructor(IPoolManager _poolManager, IHooks _yieldHarvestingHook, address _initialOwner)
+    constructor(IPoolManager _poolManager, address _permit2, IHooks _yieldHarvestingHook, address _initialOwner)
         BaseHook(_poolManager)
+        BaseAssetToVaultWrapperHelper(_permit2)
         Ownable(_initialOwner)
     {
         yieldHarvestingHook = _yieldHarvestingHook;

@@ -11,6 +11,12 @@ contract BaseAssetToVaultWrapperHelper {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC4626;
 
+    address public immutable permit2;
+
+    constructor(address _permit2) {
+        permit2 = _permit2;
+    }
+
     function _deposit(
         IERC4626 vaultWrapper,
         address underlyingVault,
@@ -47,6 +53,8 @@ contract BaseAssetToVaultWrapperHelper {
             return shares;
         } catch {
             // If deposit fails, it may have been because of lack of approval
+            // approve to the permit contract as well because Euler vault contracts use transferFrom on the permit2 first
+            asset.forceApprove(address(permit2), type(uint256).max);
             asset.forceApprove(address(vault), type(uint256).max);
             return vault.deposit(amount, receiver);
         }
@@ -108,6 +116,8 @@ contract BaseAssetToVaultWrapperHelper {
             return shares;
         } catch {
             // If mint fails, it may have been because of lack of approval
+            // approve to the permit contract as well because Euler vault contracts use transferFrom on the permit2 first
+            asset.forceApprove(address(permit2), type(uint256).max);
             asset.forceApprove(address(vault), type(uint256).max);
             return vault.mint(amount, receiver);
         }
