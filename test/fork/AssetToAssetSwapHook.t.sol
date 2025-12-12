@@ -41,6 +41,7 @@ contract AssetToAssetSwapHookForkTest is Test {
     YieldHarvestingHook public yieldHarvestingHook;
     PoolManager public poolManager;
     PoolSwapTest public swapRouter;
+    address public permit2;
 
     address initialOwner = makeAddr("initialOwner");
 
@@ -67,6 +68,7 @@ contract AssetToAssetSwapHookForkTest is Test {
         vm.createSelectFork(fork_url, 29051161);
 
         evc = address(0x2A1176964F5D7caE5406B627Bf6166664FE83c60);
+        permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
         weth = address(0x4200000000000000000000000000000000000006);
         poolManager = PoolManager(0x1F98400000000000000000000000000000000004);
         positionManager = PositionManager(payable(0x4529A01c7A0410167c5740C487A8DE60232617bf));
@@ -95,13 +97,12 @@ contract AssetToAssetSwapHookForkTest is Test {
             address(this),
             SWAP_HOOK_PERMISSIONS,
             type(AssetToAssetSwapHookForERC4626).creationCode,
-            abi.encode(poolManager, address(1), yieldHarvestingHook, initialOwner)
+            abi.encode(poolManager, permit2, yieldHarvestingHook, initialOwner)
         );
 
         assetToAssetSwapHook =
-            new AssetToAssetSwapHookForERC4626{salt: salt}(poolManager, address(1), yieldHarvestingHook, initialOwner);
-
-        liquidityHelper = new LiquidityHelper(evc, positionManager, address(1), yieldHarvestingHook);
+            new AssetToAssetSwapHookForERC4626{salt: salt}(poolManager, permit2, yieldHarvestingHook, initialOwner);
+        liquidityHelper = new LiquidityHelper(evc, positionManager, permit2, yieldHarvestingHook);
 
         assetsPoolKey = PoolKey({
             currency0: Currency.wrap(address(asset0)),

@@ -27,6 +27,7 @@ import {
 import {WETH} from "lib/solady/src/tokens/WETH.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {LiquidityHelper} from "src/periphery/LiquidityHelper.sol";
+import {MockPermit2} from "test/utils/MockPermit2.sol";
 
 contract AssetToAssetSwapHookTest is YieldHarvestingHookTest {
     PositionManager public positionManager;
@@ -34,6 +35,7 @@ contract AssetToAssetSwapHookTest is YieldHarvestingHookTest {
     address public evc;
     AssetToAssetSwapHookForERC4626 assetToAssetSwapHook;
     LiquidityHelper liquidityHelper;
+    MockPermit2 permit2;
 
     address initialOwner = makeAddr("initialOwner");
 
@@ -53,6 +55,7 @@ contract AssetToAssetSwapHookTest is YieldHarvestingHookTest {
         positionManager = new PositionManager(
             poolManager, IAllowanceTransfer(address(0)), 0, IPositionDescriptor(address(0)), IWETH9(address(weth))
         );
+        permit2 = new MockPermit2();
 
         setUpVaults(false);
 
@@ -82,12 +85,13 @@ contract AssetToAssetSwapHookTest is YieldHarvestingHookTest {
             address(this),
             SWAP_HOOK_PERMISSIONS,
             type(AssetToAssetSwapHookForERC4626).creationCode,
-            abi.encode(poolManager, address(1), yieldHarvestingHook, initialOwner)
+            abi.encode(poolManager, address(permit2), yieldHarvestingHook, initialOwner)
         );
 
-        assetToAssetSwapHook =
-            new AssetToAssetSwapHookForERC4626{salt: salt}(poolManager, address(1), yieldHarvestingHook, initialOwner);
-        liquidityHelper = new LiquidityHelper(evc, positionManager, address(1), yieldHarvestingHook);
+        assetToAssetSwapHook = new AssetToAssetSwapHookForERC4626{salt: salt}(
+            poolManager, address(permit2), yieldHarvestingHook, initialOwner
+        );
+        liquidityHelper = new LiquidityHelper(evc, positionManager, address(permit2), yieldHarvestingHook);
 
         assetsPoolKey = PoolKey({
             currency0: isCurrency0SameAsAsset0 ? Currency.wrap(address(asset0)) : Currency.wrap(address(asset1)),

@@ -13,9 +13,10 @@ import {IERC4626} from "lib/openzeppelin-contracts/contracts/interfaces/IERC4626
 import {IERC20} from "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 import {LibClone} from "lib/solady/src/utils/LibClone.sol";
 import {ERC4626VaultWrapperTest} from "test/ERC4626VaultWrapper.t.sol";
+import {MockPermit2} from "test/utils/MockPermit2.sol";
 
 contract MockAssetToVaultWrapperHelper is BaseAssetToVaultWrapperHelper {
-    constructor() BaseAssetToVaultWrapperHelper(address(1)) {}
+    constructor(address _permit2) BaseAssetToVaultWrapperHelper(_permit2) {}
 
     function deposit(
         IERC4626 vaultWrapper,
@@ -75,7 +76,7 @@ contract AssetToVaultWrapperHelper is Test {
             )
         );
 
-        assetToVaultWrapperHelper = new MockAssetToVaultWrapperHelper();
+        assetToVaultWrapperHelper = new MockAssetToVaultWrapperHelper(address(new MockPermit2()));
     }
 
     function _depositForUser(uint256 amount, address from, address to) internal returns (uint256 sharesReceived) {

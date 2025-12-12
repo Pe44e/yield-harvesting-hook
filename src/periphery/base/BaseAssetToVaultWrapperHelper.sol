@@ -6,6 +6,7 @@ import {IERC20} from "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol
 import {SafeERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {LowLevelCall} from "lib/openzeppelin-contracts/contracts/utils/LowLevelCall.sol";
 import {Memory} from "lib/openzeppelin-contracts/contracts/utils/Memory.sol";
+import {IPermit2} from "lib/v4-periphery/lib/permit2/src/interfaces/IPermit2.sol";
 
 contract BaseAssetToVaultWrapperHelper {
     using SafeERC20 for IERC20;
@@ -55,7 +56,10 @@ contract BaseAssetToVaultWrapperHelper {
             // If deposit fails, it may have been because of lack of approval
             // approve to the permit contract as well because Euler vault contracts use transferFrom on the permit2 first
             asset.forceApprove(address(permit2), type(uint256).max);
+            IPermit2(permit2).approve(address(asset), address(vault), type(uint160).max, type(uint48).max);
+
             asset.forceApprove(address(vault), type(uint256).max);
+
             return vault.deposit(amount, receiver);
         }
     }
@@ -118,7 +122,10 @@ contract BaseAssetToVaultWrapperHelper {
             // If mint fails, it may have been because of lack of approval
             // approve to the permit contract as well because Euler vault contracts use transferFrom on the permit2 first
             asset.forceApprove(address(permit2), type(uint256).max);
+            IPermit2(permit2).approve(address(asset), address(vault), type(uint160).max, type(uint48).max);
+
             asset.forceApprove(address(vault), type(uint256).max);
+
             return vault.mint(amount, receiver);
         }
     }
