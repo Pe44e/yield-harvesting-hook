@@ -23,7 +23,7 @@ interface IPositionManagerExtended is IPositionManager {
 /// @dev This doesn't support aave vaults. Only vault wrappers that have underlying vaults that support ERC4626 interface are supported.
 /// @dev This contract will have approvals of the Liquidity Positions NFTs. We only care about bugs that lead to loss of NFTs here.
 ///      Otherwise it is up to the user to make sure this contract doesn't hold any funds.
-/// @dev Right now, when we call SWEEP, if it is vault wrappers, user is getting the raw vault wrappers.
+/// @notice Right now, when we call SWEEP, if it is vault wrappers, user is getting the raw vault wrappers.
 /// We need to take those and convert them back into the raw assets if specified. (Do it in case of L2. Do not do it if it is mainnet)
 contract LiquidityHelper is EVCUtil, BaseAssetToVaultWrapperHelper {
     using SafeERC20 for IERC20;
@@ -45,8 +45,12 @@ contract LiquidityHelper is EVCUtil, BaseAssetToVaultWrapperHelper {
     }
 
     modifier onlyOwnerOf(uint256 tokenId) {
-        if (IERC721(address(positionManager)).ownerOf(tokenId) != _msgSender()) {
-            revert NotOwner();
+        {
+            address ownerOfTokenId = IERC721(address(positionManager)).ownerOf(tokenId);
+            //@dev if a tokenId is being sent to this address make sure 100% of the liquidity is removed in the same transaction
+            if (ownerOfTokenId != address(this) && ownerOfTokenId != _msgSender()) {
+                revert NotOwner();
+            }
         }
         _;
     }
@@ -235,8 +239,16 @@ contract LiquidityHelper is EVCUtil, BaseAssetToVaultWrapperHelper {
                 recipient
             );
         } else {
-            //simply transfer the tokens to recipient
-            currency0.transfer(recipient, currency0.balanceOfSelf());
+            if (currency0.isAddressZero()) {
+                // convert native eth in WETH first and then send it
+                // Liquidity Manager forces the choice that that no native ETH will be returned to the recipient
+                uint256 ethBalance = address(this).balance;
+                weth.deposit{value: ethBalance}();
+                weth.transfer(recipient, ethBalance);
+            } else {
+                //simply transfer the tokens to recipient
+                currency0.transfer(recipient, currency0.balanceOfSelf());
+            }
         }
 
         if (address(vaultWrapper1) != address(0)) {

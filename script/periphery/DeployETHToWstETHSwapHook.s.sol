@@ -37,7 +37,7 @@ contract DeployETHToWstETHSwapHookScript is Script {
 
     // ── Pool parameters ──────────────────────────────────────────────────────
     IHooks constant YIELD_HARVESTING_HOOK = IHooks(0x777ADCF55501b3494a188cb8dBE415CF8d942a80);
-    uint24 constant FEE = 100;       // 0.01%
+    uint24 constant FEE = 100; // 0.01%
     int24 constant TICK_SPACING = 1;
 
     // ── Tokens ───────────────────────────────────────────────────────────────
@@ -47,9 +47,7 @@ contract DeployETHToWstETHSwapHookScript is Script {
 
     // Hook flags required by ETHToWstETHSwapHook
     uint160 constant HOOK_FLAGS = uint160(
-        Hooks.BEFORE_INITIALIZE_FLAG
-            | Hooks.BEFORE_ADD_LIQUIDITY_FLAG
-            | Hooks.BEFORE_SWAP_FLAG
+        Hooks.BEFORE_INITIALIZE_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG | Hooks.BEFORE_SWAP_FLAG
             | Hooks.BEFORE_SWAP_RETURNS_DELTA_FLAG
     );
 
@@ -116,21 +114,21 @@ contract DeployETHToWstETHSwapHookScript is Script {
 
         bytes memory actionsETHtoWST = abi.encodePacked(
             uint8(Actions.SWAP_EXACT_IN_SINGLE), // swap
-            uint8(Actions.SETTLE_ALL),            // pay ETH debt
-            uint8(Actions.TAKE_ALL)               // receive wstETH
+            uint8(Actions.SETTLE_ALL), // pay ETH debt
+            uint8(Actions.TAKE_ALL) // receive wstETH
         );
 
         bytes[] memory paramsETHtoWST = new bytes[](3);
         paramsETHtoWST[0] = abi.encode(
             IV4Router.ExactInputSingleParams({
                 poolKey: poolKey,
-                zeroForOne: true,          // ETH (currency0) → wstETH (currency1)
+                zeroForOne: true, // ETH (currency0) → wstETH (currency1)
                 amountIn: ethAmountIn,
-                amountOutMinimum: 0,       // no slippage protection in this demo
+                amountOutMinimum: 0, // no slippage protection in this demo
                 hookData: ""
             })
         );
-        paramsETHtoWST[1] = abi.encode(ETH_CURRENCY, ethAmountIn);  // SETTLE_ALL: (currency, maxAmount)
+        paramsETHtoWST[1] = abi.encode(ETH_CURRENCY, ethAmountIn); // SETTLE_ALL: (currency, maxAmount)
         paramsETHtoWST[2] = abi.encode(WST_ETH_CURRENCY, uint256(0)); // TAKE_ALL: (currency, minAmount)
 
         uint256 wstETHBefore = IERC20(WST_ETH).balanceOf(msg.sender);
@@ -151,28 +149,26 @@ contract DeployETHToWstETHSwapHookScript is Script {
 
         // Approve wstETH → Permit2 → Universal Router
         IERC20(WST_ETH).forceApprove(PERMIT2, type(uint256).max);
-        IAllowanceTransfer(PERMIT2).approve(
-            WST_ETH, address(UNIVERSAL_ROUTER), type(uint160).max, type(uint48).max
-        );
+        IAllowanceTransfer(PERMIT2).approve(WST_ETH, address(UNIVERSAL_ROUTER), type(uint160).max, type(uint48).max);
 
         bytes memory actionsWSTtoETH = abi.encodePacked(
             uint8(Actions.SWAP_EXACT_IN_SINGLE), // swap
-            uint8(Actions.SETTLE_ALL),            // pay wstETH debt (pulled via Permit2)
-            uint8(Actions.TAKE_ALL)               // receive ETH
+            uint8(Actions.SETTLE_ALL), // pay wstETH debt (pulled via Permit2)
+            uint8(Actions.TAKE_ALL) // receive ETH
         );
 
         bytes[] memory paramsWSTtoETH = new bytes[](3);
         paramsWSTtoETH[0] = abi.encode(
             IV4Router.ExactInputSingleParams({
                 poolKey: poolKey,
-                zeroForOne: false,           // wstETH (currency1) → ETH (currency0)
+                zeroForOne: false, // wstETH (currency1) → ETH (currency0)
                 amountIn: wstETHAmountIn,
-                amountOutMinimum: 0,         // no slippage protection in this demo
+                amountOutMinimum: 0, // no slippage protection in this demo
                 hookData: ""
             })
         );
         paramsWSTtoETH[1] = abi.encode(WST_ETH_CURRENCY, wstETHAmountIn); // SETTLE_ALL
-        paramsWSTtoETH[2] = abi.encode(ETH_CURRENCY, uint256(0));           // TAKE_ALL
+        paramsWSTtoETH[2] = abi.encode(ETH_CURRENCY, uint256(0)); // TAKE_ALL
 
         uint256 ethBefore = msg.sender.balance;
 
